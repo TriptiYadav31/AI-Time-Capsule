@@ -3,9 +3,15 @@ import os
 from google import genai
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "embeddings"))
-from build_vector_db import search
+from pinecone_search import search, search_all
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=GEMINI_API_KEY)
+
+NO_DATA_MESSAGE = """I don't have enough data about this in my sources.
+My knowledge comes from NYT headlines, Wikipedia Current Events, and Billboard charts.
+Coverage may be limited for: cricket, regional sports, Bollywood, local Indian news, or niche topics.
+Try asking about major world news, music charts, COVID, elections, or big global events instead."""
 
 
 def build_prompt(question, month_prefix, chunks):
@@ -27,7 +33,7 @@ If the information above doesn't actually answer the question, say so honestly i
 def build_free_prompt(question, chunks):
     context = "\n".join(f"- [{c['date']} | {c['source']}] {c['text']}" for c in chunks)
     return f"""You are a knowledgeable AI assistant with access to real news,
-world events, and music chart data spanning 2015 to 2026.
+world events, and music chart data spanning 2020 to 2026.
 
 Answer the question below using ONLY the information provided.
 If the answer isn't in the information, say so honestly.
@@ -45,7 +51,7 @@ Answer naturally and conversationally.
 def answer(question, month_prefix):
     chunks = search(question, month_prefix, top_k=8)
     if not chunks:
-        return NO_DATA_MESSAGE, [], False  # text, sources, has_data
+        return NO_DATA_MESSAGE, [], False
 
     prompt = build_prompt(question, month_prefix, chunks)
     response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
