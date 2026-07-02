@@ -83,7 +83,36 @@ def chunk_billboard(top_n=10):
 
 
 def main():
-    all_chunks = chunk_nyt() + chunk_wikipedia() + chunk_billboard()
+    nyt_chunks = chunk_nyt()
+    wiki_chunks = chunk_wikipedia()
+    billboard_chunks = chunk_billboard()
+
+    # Keep only 2020 onwards
+    nyt_chunks = [c for c in nyt_chunks if c["date"] >= "2020-01-01"]
+    wiki_chunks = [c for c in wiki_chunks if c["date"] >= "2020-01-01"]
+    billboard_chunks = [c for c in billboard_chunks if c["date"] >= "2020-01-01"]
+
+    # Cap NYT to 30 chunks per month — it has hundreds per month
+    # Wikipedia and Billboard are already small so keep them fully
+    from collections import defaultdict
+    nyt_counts = defaultdict(int)
+    nyt_filtered = []
+    for c in nyt_chunks:
+        month = c["date"][:7]
+        if nyt_counts[month] < 30:
+            nyt_filtered.append(c)
+            nyt_counts[month] += 1
+
+    wiki_counts = defaultdict(int)
+    wiki_filtered = []
+    for c in wiki_chunks:
+        month = c["date"][:7]
+        if wiki_counts[month] < 20:
+            wiki_filtered.append(c)
+            wiki_counts[month] += 1
+
+    all_chunks = nyt_filtered + wiki_filtered + billboard_chunks
+
     for i, c in enumerate(all_chunks):
         c["id"] = f"chunk_{i:06d}"
 
@@ -91,8 +120,11 @@ def main():
     out_path = os.path.join(PROCESSED_DIR, "chunks.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(all_chunks, f, ensure_ascii=False, indent=2)
+
     print(f"Built {len(all_chunks)} chunks -> {out_path}")
-
-
+    print(f"  NYT: {len(nyt_filtered)}")
+    print(f"  Wikipedia: {len(wiki_filtered)}")
+    print(f"  Billboard: {len(billboard_chunks)}")
 if __name__ == "__main__":
     main()
+  
