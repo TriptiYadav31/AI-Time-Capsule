@@ -4,8 +4,8 @@ import streamlit as st
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "generation"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "embeddings"))
+from pinecone_search import search
 from answer_question import answer, answer_free
-from build_vector_db import search
 
 # ---------- Page config ----------
 st.set_page_config(page_title="AI Time Capsule & Trend Oracle", page_icon="🕰️", layout="centered")
@@ -50,7 +50,7 @@ def get_theme(year: int):
 
 # ---------- Build full month list ----------
 all_months = []
-for y in range(2015, 2027):
+for y in range(2020, 2027):
     for m in range(1, 13):
         if y == 2026 and m > 6:
             break
@@ -72,7 +72,7 @@ mode = st.radio(
 
 # ---------- Pick theme based on mode ----------
 if mode == "🕰️ Time Travel":
-    month = st.selectbox("🌀 Travel to:", options=all_months, index=all_months.index("2016-07"))
+    month = st.selectbox("🌀 Travel to:", options=all_months, index=all_months.index("2020-03"))
     year = int(month[:4])
     theme = get_theme(year)
 else:
@@ -245,3 +245,4 @@ for entry in st.session_state.history:
             <p style="color:#e0e0e0; line-height:1.7;">{entry['answer']}</p>
         </div>
         """, unsafe_allow_html=True)
+
