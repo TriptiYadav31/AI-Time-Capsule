@@ -1,6 +1,7 @@
 streamlit
-chromadb
+pinecone
 google-genai
 requests
 beautifulsoup4
 pandas
+chromadb
