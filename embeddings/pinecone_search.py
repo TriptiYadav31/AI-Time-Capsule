@@ -29,53 +29,48 @@ def get_embedder():
     return _embedder
 
 
-def search(query, month_prefix, top_k=5, max_distance=0.5):
+def search(query, month_prefix, top_k=5):
     index = get_index()
     embedder = get_embedder()
-    query_embedding = [float(x) for x in embedder([query])[0]]  # fix here
-    
+    query_embedding = [float(x) for x in embedder([query])[0]]
+
     results = index.query(
         vector=query_embedding,
-        top_k=top_k * 3,
+        top_k=top_k,
         filter={"year_month": {"$eq": month_prefix}},
         include_metadata=True,
     )
 
     matches = []
     for match in results["matches"]:
-        score = match["score"]  # cosine similarity: higher = more relevant
-        if score >= max_distance:
-            matches.append({
-                "text": match["metadata"]["text"],
-                "date": match["metadata"]["date"],
-                "source": match["metadata"]["source"],
-                "distance": 1 - score,  # convert to distance for consistency
-            })
+        matches.append({
+            "text": match["metadata"]["text"],
+            "date": match["metadata"]["date"],
+            "source": match["metadata"]["source"],
+            "distance": round(1 - match["score"], 3),
+        })
 
-    matches.sort(key=lambda m: m["distance"])
-    return matches[:top_k]
+    return matches
 
 
-def search_all(query, top_k=5, max_distance=0.5):
+def search_all(query, top_k=5):
     index = get_index()
     embedder = get_embedder()
-    query_embedding = [float(x) for x in embedder([query])[0]]  
+    query_embedding = [float(x) for x in embedder([query])[0]]
 
     results = index.query(
         vector=query_embedding,
         top_k=top_k,
         include_metadata=True,
     )
-    
+
     matches = []
     for match in results["matches"]:
-        score = match["score"]
-        if score >= max_distance:
-            matches.append({
-                "text": match["metadata"]["text"],
-                "date": match["metadata"]["date"],
-                "source": match["metadata"]["source"],
-                "distance": 1 - score,
-            })
+        matches.append({
+            "text": match["metadata"]["text"],
+            "date": match["metadata"]["date"],
+            "source": match["metadata"]["source"],
+            "distance": round(1 - match["score"], 3),
+        })
 
     return matches
