@@ -1,0 +1,14 @@
+# API keys — never upload
+generation/answer_question.py
+
+# Vector database — too large
+data/vector_db/
+
+# Raw data — too large
+data/raw/
+data/processed/
+
+# Python cache
+__pycache__/
+*.pyc
+.env
