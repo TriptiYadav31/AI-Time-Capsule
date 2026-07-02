@@ -1,0 +1,6 @@
+streamlit
+chromadb
+google-genai
+requests
+beautifulsoup4
+pandas
